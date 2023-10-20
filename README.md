@@ -47,3 +47,17 @@ This basically means, once someone interacts with clerks API throug sign-up sign
 The problem with that, that is asynchronous. There's no way for me to wait for webhook, at least no elegant way. If I'm waiting for them to talk to my server that's a lot different for me to fire off a request and getting a response back.
 
 Example: Webhook is essentially it's like an event, let's talk about 2 servers, let's talk about Github and your server. So, if you create a webhook on Github, and let's say you wanna subscribe to pull request comment events, so what would happen is, you would give a url to github of your API, and you say hey Github I wanna subscribe to pull request of comment event. And Github says ok cool, whenever someone makes a comment event of pull request, I'm going to issue the request to the URL you gave me. And then that way you can respond to that. You can take that information and use it. Like, slack bot that shows slack messages every time someone sends a pull request. So, your server gets notified by github that someone made a comment event of pull request.
+
+## Database
+
+1. `planetscale`
+
+We're going to use a few things for our database, the first thing we're going to use is `PlanetScale`
+
+**planetscale: is `Serverless SQL database`**
+
+But it's actually somelike cool how it works, and also it's treated like a repo, it makes branches on your database, and it handles migrations for you automatically, it determines what changes to your schema will cause a conflict and write those migrations for you.
+
+2. `prisma`
+
+Prisma is `ORM`, ORM is an SDK for your database, it's how you interact with your database in your code. The sweet thing about prisma is that it doesn't care about the database you use.
