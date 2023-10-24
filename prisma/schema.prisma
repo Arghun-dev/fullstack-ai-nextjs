@@ -34,8 +34,8 @@ model Journal {
 
   analysis Analysis?
 
-  @@index([userId])
-}
+  @@unique([userId, id])
+} 
 
 model Analysis {
   id        String   @id @default(uuid())
