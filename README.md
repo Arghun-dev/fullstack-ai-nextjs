@@ -61,3 +61,85 @@ But it's actually somelike cool how it works, and also it's treated like a repo,
 2. `prisma`
 
 Prisma is `ORM`, ORM is an SDK for your database, it's how you interact with your database in your code. The sweet thing about prisma is that it doesn't care about the database you use.
+
+## AI
+
+In our project, we're going to send a prmpt to GPT and based on that prompt, I want to get back the result of `Analysis` which returns to me the `mood` `summary` `color` `negative` from the AI.
+
+**Couple of things we need to consider**
+
+1. How to ask it that?
+2. We're gonna make sure that, it's consistent. Because, that's the thing about the AI, I mean I can get different and random responses with giving the same prompt.
+
+So, how to get structured output from something that is completely random. What do we have to ask it to get it? And how do we keep all that working?
+
+First ask the right question.
+
+```js
+await analyze(
+  `I'm going to give you a journal entry, I want to analyze for a few things.I need the mood, a summary, what the subject is, and a color representing the mood and is the mood negative or not with boolean value. You need to respond back with a formatted JSON like so: { "mood": "", "summary": "", "subject": "", "color": "", "negative": false | true }`
+);
+```
+
+Now the second issue that we're going to solve is the data types that are coming back to me. For example the "negative" I want it to be `boolean` type.
+
+To solve this issue, we will use a library called `Zod`
+
+**Structered Output with Zod**
+
+Now, we want the JSON response to keep it persistent and parse it, extract it and add it to our database.
+
+We're gonna use some javascript schema library to create the schema for us and it creates this prompt for us. So we don't have to create it. We just write code, that code will generate this prompt with the schema embedded to it. And we'll get it back every single time, And we'll just get back a javascript object.
+
+What we can do with `zod` is that we can define a schema and according to that schema we can validate any object that we want.
+
+example:
+
+```js
+import { z } from "zod";
+
+const user = {
+  name: "John",
+  age: 36,
+  email: "john@example.com",
+};
+
+const UserSchema = z.object({
+  name: z.string(), // or z.literal('John')
+  age: z.number(),
+  email: z.string().email(),
+});
+
+const validatedUser = UserSchema.parse(user);
+```
+
+`parse` tries to parse the schema and if it is valid it will return parsed object otherwise it will fail.
+
+Now let's get back to our project example
+
+```js
+import { z } from "zod";
+import { OpenAI } from "langchain/llms/openai";
+import { StructuredOutputParser } from "langchain/output_parsers";
+
+// we can use zod to define a schema for the output using the `fromZodSchema`
+const parser = StructuredOutputParser.fromZodSchema(
+  z.object({
+    mood: z
+      .string()
+      .describe("the mood of the person who wrote the journal entry"),
+    summary: z.string().describe("quick summary of the entire entry"),
+    negative: z
+      .boolean()
+      .describe(
+        "is the journal entry negative? (i.e. does it contain negative emotions?)."
+      ),
+    subject: z.string().describe("the subject of the journal entry."),
+    color: z
+      .string()
+      .describe(
+        "a hexadecimal color code that represents the mood of the entry. Example #0101fe for blue representing happiness."
+      ),
+  })
+);
+```
